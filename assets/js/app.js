@@ -69,7 +69,7 @@
     if (v !== 'player') { lastNonPlayer = { v: v, p: param }; setHash(toHash(v, param)); }
     $$('.view').forEach(function (el) { el.classList.add('hide'); });
     $('#view-' + v).classList.remove('hide');
-    $$('#navMain button,#navMine button').forEach(function (b) { b.classList.toggle('active', b.dataset.view === v); });
+    $$('#navMain button,#navMine button,#mobileNav button').forEach(function (b) { b.classList.toggle('active', b.dataset.view === v); });
     var ct = VIEWS[v];
     if (p) {
       if (/^p\d+$/.test(p)) ct += '<span>/</span> 项目' + esc(p.slice(1));
@@ -761,7 +761,7 @@
   }
 
   /* ---------------- 事件绑定 ---------------- */
-  $$('#navMain button,#navMine button').forEach(function (b) { b.onclick = function () { if (b.dataset.view === 'courses') filter.track = null; go(b.dataset.view); }; });
+  $$('#navMain button,#navMine button,#mobileNav button').forEach(function (b) { b.onclick = function () { if (b.dataset.view === 'courses') filter.track = null; go(b.dataset.view); }; });
   $$('[data-go]').forEach(function (b) { b.onclick = function () { if (b.dataset.go === 'courses') filter.track = null; go(b.dataset.go); }; });
   $('#btnClose').onclick = closePlayer;
   $('#btnPlay').onclick = function () { vid.paused ? vid.play() : vid.pause(); };
