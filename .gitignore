@@ -1,0 +1,9 @@
+# 视频仅保留在本地，不进入线上仓库
+videos/
+
+# 本地部署工具（MinGit 本体）
+tools/mingit/
+
+# 系统杂项
+Thumbs.db
+Desktop.ini
