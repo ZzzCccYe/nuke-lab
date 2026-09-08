@@ -32,6 +32,16 @@ if ($mode -eq 'down') {
 }
 
 # mode = up：提交并推送本地修改
+# 每次推送前自动更新 index.html 里的资源版本号，强制线上/手机刷新 css/js 缓存
+$indexPath = Join-Path $root 'index.html'
+$stamp = Get-Date -Format 'yyyyMMddHHmm'
+$html = [System.IO.File]::ReadAllText($indexPath)
+$newHtml = [regex]::Replace($html, '(\.(?:css|js)\?v=)\d+', ('${1}' + $stamp))
+if ($newHtml -ne $html) {
+  [System.IO.File]::WriteAllText($indexPath, $newHtml)
+  Write-Host "==> 资源版本号已更新为 $stamp"
+}
+
 & $git add -A
 $staged = @(& $git diff --cached --name-only)
 if ($staged.Count -gt 0) {
