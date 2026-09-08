@@ -53,5 +53,11 @@ if ($staged.Count -gt 0) {
 }
 Write-Host '==> 推送到线上 ...'
 & $git push
+if ($LASTEXITCODE -ne 0) {
+  Write-Host '==> 推送受阻，尝试先合并线上修改再重试 ...' -ForegroundColor Yellow
+  & $git pull --rebase --autostash
+  if ($LASTEXITCODE -ne 0) { Write-Host '网络不稳定，请稍后再试（内容已保存在本地，不会丢失）。' -ForegroundColor Red; exit 1 }
+  & $git push
+}
 Write-Host ''
 Write-Host '完成。GitHub Pages 会在 1-2 分钟内自动更新线上页面。' -ForegroundColor Green
