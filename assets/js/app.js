@@ -1,7 +1,7 @@
 /* Nuke Lab — 应用逻辑 */
 (function () {
   'use strict';
-  var D = window.NUKE_DATA, NODES = window.NUKE_NODES;
+  var D = window.NUKE_DATA, NODES = window.NUKE_NODES, VIZ = window.NUKE_VIZ || {};
   var KEY = 'nukelab.v1';
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -336,7 +336,99 @@
     { title: '编码与交付', tone: 'pink', rows: [['文件序列 / Image Sequence', '每帧一个文件，如 .exr、.dpx、.png。', '合成主交付首选序列帧：可断点续渲、单帧修复且不易损坏。'], ['EXR 压缩', 'ZIP、PIZ、DWAA 等无损或有损压缩选择。', '通用合成中间文件常用 PIZ/ZIP；DWAA 更省空间但需确认品质。'], ['编码器 / Codec', '视频压缩算法，如 ProRes、DNxHR、H.264/H.265。', '审片可用 H.264；母版或后期流程优先 ProRes/DNxHR 或 EXR。'], ['码率 / Bitrate', '压缩视频每秒使用的数据量。', '码率越低体积越小但伪影越明显；不要把它与位深混为一谈。'], ['Alpha 输出', '输出文件是否保留透明通道。', '要交付带透明的元素时，使用支持 Alpha 的 EXR/PNG/ProRes 4444。']] },
     { title: '常见交付格式速查', tone: 'violet', rows: [['ProRes 4444 / 4444 XQ', 'Apple 高品质编码，4444 支持 RGB 与 Alpha；XQ 码率、位深余量更高。', '带透明的广告元素、动画或客户中间件常用 4444；需要最高质量再选 4444 XQ。'], ['ProRes 422 HQ', '10-bit 4:2:2 高质量审片/母版格式，不含 Alpha。', '适合无透明需求的高质量审片与播出文件；不要用于透明元素交付。'], ['DNxHR HQX / 444', 'Avid 系列高质量编码；HQX 多为 10-bit 4:2:2，444 可保留 4:4:4 信息。', '跨 Windows/Avid 工作流优先考虑；具体 Alpha 支持请按交付方编码规范确认。'], ['H.264 / H.265', '高压缩分发编码，体积小；H.265 更省码率但兼容性与解码压力更高。', '用于审片、邮件和网页，不建议作为多轮合成的中间母版。'], ['PNG 序列', '无损 8/16-bit 图像序列，可携带 Alpha，体积通常大于压缩视频。', '适合网页动画、图形元素或需要简单透明的交付；不适合高动态范围 CG。'], ['DPX 序列', '电影/调色流程常见的逐帧格式，通常为 10/12-bit，文件较大。', '交给传统 DI/调色流程前，先与对方确认帧号、位深、Log 和色彩空间。'], ['OpenEXR 序列', '后期标准的浮点、多通道、高动态范围序列格式。', 'Nuke 合成中间件的首选，可保留 RGBA、AOV、Z-depth 与 motion vector。'], ['WAV / PCM 音频', '无压缩音频；视频封装常需明确采样率与位深。', '常用交付为 48 kHz / 24-bit PCM；不要把 44.1 kHz 的音乐文件直接当播出母版。']] }
   ];
+  /* ---- 交付格式规范：可视化图解 ---- */
+  var vizMetric = 'quality';
+  function lerpHex(a, b, t) {
+    var pa = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)];
+    var pb = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)];
+    return 'rgb(' + pa.map(function (v, i) { return Math.round(v + (pb[i] - v) * t); }).join(',') + ')';
+  }
+  function rampHTML(steps) {
+    var out = '', n = Math.max(4, steps);
+    for (var i = 0; i < n; i++) out += '<i style="width:' + (100 / n).toFixed(3) + '%;background:' + lerpHex('#0d1730', '#eaf1ff', i / (n - 1)) + '"></i>';
+    return out;
+  }
+  function renderVideoViz() {
+    var html = '';
+
+    // 1. 画幅对照
+    html += '<section class="viz-card wide"><h3><span class="param-tone violet"></span>画幅与分辨率对照</h3>' +
+      '<p class="viz-sub">下面的色块按真实宽高比渲染，可直接感受不同画幅的视野差异。</p><div class="aspect-row">' +
+      (VIZ.aspects || []).map(function (a) {
+        var ar = a.w / a.h, h = 84, w = h * ar;
+        if (w > 110) { w = 110; h = w / ar; }
+        return '<div class="aspect-item"><div class="aspect-stage"><div class="aspect-box ' + a.tone + '" style="width:' + Math.round(w) + 'px;height:' + Math.round(h) + 'px"><span>' + a.w + '×' + a.h + '</span></div></div>' +
+          '<b>' + esc(a.name) + '</b><i>' + esc(a.ratio) + '</i><em>' + esc(a.use) + '</em></div>';
+      }).join('') + '</div></section>';
+
+    // 2. 位深
+    html += '<section class="viz-card"><h3><span class="param-tone teal"></span>位深与渐变断层</h3>' +
+      '<p class="viz-sub">同一段渐变在不同位深下的台阶数；台阶越少越容易出现 banding。</p>' +
+      (VIZ.depths || []).map(function (d) {
+        return '<div class="depth-row"><div class="depth-head"><b>' + esc(d.bits) + '</b><span>' + (d.levels ? d.levels.toLocaleString() + ' 级 / 通道' : '浮点') + '</span></div>' +
+          '<div class="ramp ' + d.tone + '">' + rampHTML(d.steps) + '</div><em>' + esc(d.note) + '</em></div>';
+      }).join('') + '</section>';
+
+    // 3. 色度子采样
+    html += '<section class="viz-card"><h3><span class="param-tone orange"></span>色度子采样</h3>' +
+      '<p class="viz-sub">深色格表示该像素有独立色度信息，浅灰格表示沿用相邻像素的色度。</p>' +
+      '<div class="sub-grid">' + (VIZ.subsampling || []).map(function (s) {
+        var cells = '';
+        for (var y = 0; y < 4; y++) {
+          for (var x = 0; x < 8; x++) {
+            var has = (x % s.chromaX === 0) && (y % s.chromaY === 0);
+            cells += '<i class="' + (has ? 'c' : 'y') + '"></i>';
+          }
+        }
+        return '<div class="sub-item"><b>' + esc(s.name) + '</b><div class="sub-cells">' + cells + '</div><em>' + esc(s.note) + '</em></div>';
+      }).join('') + '</div>' +
+      '<div class="sub-legend"><span><i class="c"></i>独立色度</span><span><i class="y"></i>沿用相邻</span></div></section>';
+
+    // 4. 编码横向对比
+    html += '<section class="viz-card"><h3><span class="param-tone pink"></span>编码 / 容器对比</h3>' +
+      '<div class="metric-chips">' + (VIZ.metrics || []).map(function (m) {
+        return '<button class="chip' + (vizMetric === m.key ? ' on' : '') + '" data-metric="' + m.key + '">' + esc(m.label) + '</button>';
+      }).join('') + '</div><div class="cmp-list">' + (VIZ.codecs || []).map(function (c) {
+        var v = c[vizMetric];
+        return '<div class="cmp-row"><span class="cmp-name">' + esc(c.name) + (c.alpha ? '<i class="badge-a">α</i>' : '') + (c.seq ? '<i class="badge-s">序列</i>' : '') + '</span>' +
+          '<span class="cmp-bar"><i style="width:' + v + '%"></i></span><span class="cmp-val">' + v + '</span>' +
+          '<em>' + esc(c.note) + '</em></div>';
+      }).join('') + '</div></section>';
+
+    // 5. 色彩管线
+    html += '<section class="viz-card"><h3><span class="param-tone violet"></span>色彩管线：从素材到输出</h3>' +
+      '<p class="viz-sub">合成运算应在线性空间完成；Viewer 的显示 LUT 只影响你怎么看，不影响写出什么。</p>' +
+      '<div class="pipe-chain">' + (VIZ.pipeline || []).map(function (p, i) {
+        return '<div class="pipe-node ' + p.tone + '"><b>' + esc(p.name) + '</b><span>' + esc(p.sub) + '</span></div>' + (i < VIZ.pipeline.length - 1 ? '<span class="pipe-arrow">→</span>' : '');
+      }).join('') + '</div>' +
+      '<div class="pipe-desc">' + (VIZ.pipeline || []).map(function (p) { return '<div><b>' + esc(p.name) + '</b><span>' + esc(p.desc) + '</span></div>'; }).join('') + '</div></section>';
+
+    // 6. 命名规范
+    var nm = VIZ.naming || {};
+    html += '<section class="viz-card"><h3><span class="param-tone lime"></span>文件命名规范</h3>' +
+      '<p class="viz-sub">点任意分段可复制该模板；命名一旦写死就很难返工。</p>' +
+      '<div class="name-tpl" id="nameTpl" title="点击复制">' + (nm.parts || []).map(function (p) {
+        return '<span class="name-part ' + p.tone + '" data-part="' + esc(p.text) + '"><b>' + esc(p.text) + '</b><i>' + esc(p.label) + '</i></span>';
+      }).join('<span class="name-sep">_</span>') + '</div>' +
+      '<div class="name-tips">' + (nm.tips || []).map(function (t) { return '<div>· ' + esc(t) + '</div>'; }).join('') + '</div></section>';
+
+    // 7. 常见翻车点
+    html += '<section class="viz-card wide"><h3><span class="param-tone orange"></span>常见翻车点：错误 vs 正确</h3>' +
+      '<div class="pit-grid">' + (VIZ.pitfalls || []).map(function (p) {
+        return '<div class="pit-item"><b>' + esc(p.title) + '</b><div class="pit-pair">' +
+          '<div class="pit-tile bad"><span class="pit-tag">✗ 常见错误</span><div class="pit-demo ' + p.demo + ' bad"></div><em>' + esc(p.bad) + '</em></div>' +
+          '<div class="pit-tile good"><span class="pit-tag">✓ 正确做法</span><div class="pit-demo ' + p.demo + ' good"></div><em>' + esc(p.good) + '</em></div>' +
+          '</div></div>';
+      }).join('') + '</div></section>';
+
+    $('#videoViz').innerHTML = html;
+    $$('#videoViz [data-metric]').forEach(function (b) { b.onclick = function () { vizMetric = b.dataset.metric; renderVideoViz(); }; });
+    var tpl = $('.name-tpl');
+    if (tpl) tpl.onclick = function () { copyText((VIZ.naming || {}).tpl || '', '命名模板已复制'); };
+  }
+
   function renderVideoGuide() {
+    renderVideoViz();
     $('#videoGuide').innerHTML = VIDEO_GUIDE.map(function (g) {
       return '<section class="param-section"><h2><span class="param-tone ' + g.tone + '"></span>' + g.title + '</h2><div class="param-table-wrap"><table><thead><tr><th>参数</th><th>它是什么</th><th>在 Nuke 中的建议</th></tr></thead><tbody>' + g.rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join('') + '</tbody></table></div></section>';
     }).join('');
@@ -461,21 +553,57 @@
     $('#dcTask').oninput = function () { DC.task = this.value.trim().replace(/\s+/g, ''); save(); renderDconfPrev(); };
     $('#dcVer').oninput = function () { var v = parseInt(this.value, 10); if (!isNaN(v) && v > 0) { DC.ver = Math.min(999, v); save(); renderDconfPrev(); } };
   }
+  function estBytesFor(codec) {
+    var cd = CODECS[codec]; if (!cd) return 0;
+    var f = FORMATS[DC.format], frames = Math.max(1, DC.end - DC.start + 1);
+    if (cd.kind === 'seq') {
+      var px = f.w * f.h, per;
+      if (codec === 'exr') per = px * (DC.alpha ? 4 : 3) * DEPTH_BYTES[DC.depth] * (CODECS.exr.factor[DC.comp] || 1);
+      else if (codec === 'png') per = px * (DC.alpha ? 4 : 3) * DEPTH_BYTES[DC.depth] * (DC.depth === '16-bit' ? 0.62 : 0.55);
+      else per = px * 4;
+      return per * frames;
+    }
+    var secs = frames / DC.fps, scale = Math.min(4, Math.max(0.4, (f.w * f.h * DC.fps) / (1920 * 1080 * 24)));
+    return cd.mbps * scale * 131072 * secs;
+  }
+  function sizeCmpHTML() {
+    var list = ['exr', 'png', 'prores4444', 'prores422hq', 'h264'];
+    var vals = list.map(function (k) { return { k: k, b: estBytesFor(k) }; });
+    var max = Math.max.apply(null, vals.map(function (v) { return v.b; })) || 1;
+    return '<div class="size-cmp">' + vals.map(function (v) {
+      var cur = v.k === DC.codec;
+      return '<div class="sc-row' + (cur ? ' on' : '') + '"><span>' + esc(CODECS[v.k].name) + '</span>' +
+        '<i style="width:' + Math.max(3, v.b / max * 100).toFixed(1) + '%"></i><b>' + esc(fmtBytes(v.b)) + '</b></div>';
+    }).join('') + '</div>';
+  }
+  function timelineHTML() {
+    var main = Math.max(1, DC.end - DC.start + 1), han = DC.handles;
+    if (!han) {
+      return '<div class="dtime"><div class="dtime-seg main" style="flex:1"><span>正式范围 ' + DC.start + ' - ' + DC.end + '</span></div></div>' +
+        '<div class="dtime-note">未加句柄：剪辑若需要前后余量，建议补 8 帧。</div>';
+    }
+    return '<div class="dtime">' +
+      '<div class="dtime-seg handle" style="flex:' + han + '"><span>句柄 ' + han + '</span></div>' +
+      '<div class="dtime-seg main" style="flex:' + main + '"><span>正式范围 ' + DC.start + ' - ' + DC.end + '</span></div>' +
+      '<div class="dtime-seg handle" style="flex:' + han + '"><span>句柄 ' + han + '</span></div></div>' +
+      '<div class="dtime-note">实际渲染 ' + hStart() + ' - ' + hEnd() + '（共 ' + (main + han * 2) + ' 帧），交接时说明哪一段是正式范围。</div>';
+  }
   function renderDconfPrev() {
     var cd = CODECS[DC.codec], f = FORMATS[DC.format], seq = cd.kind === 'seq', est = estSize();
     var name = dBase() + (seq ? '.####.' + cd.ext : '.' + cd.ext);
-    var rows = [
-      ['输出文件', '…/' + (DC.show || 'show') + '/03_renders/' + (DC.task || 'comp') + '/v' + dPad(DC.ver) + '/' + name],
-      ['渲染范围', DC.start + ' - ' + DC.end + (DC.handles > 0 ? '（含句柄 ' + hStart() + ' - ' + hEnd() + '）' : '（无句柄）')],
-      ['格式 / 帧率', f.label + ' · ' + DC.fps + ' fps'],
-      ['色彩空间', DC.space],
-      ['编码', cd.name + ' · ' + DC.depth + (DC.codec === 'exr' && DC.comp ? ' · ' + DC.comp : '')],
-      ['通道', DC.alpha ? 'rgba（含 Alpha）' : 'rgb'],
-      ['文件类型', seq ? '序列帧 · 支持断点续渲与单帧重渲' : '视频封装 · ' + cd.ext.toUpperCase()]
+    var chips = [
+      [f.w + '×' + f.h, 'violet'], [DC.fps + ' fps', 'slate'], [cd.name, 'teal'], [DC.depth, 'orange'],
+      [DC.alpha ? 'rgba 含 Alpha' : 'rgb 无 Alpha', DC.alpha ? 'pink' : 'slate'], [DC.space.split(' (')[0], 'violet'],
+      [seq ? '序列帧' : cd.ext.toUpperCase() + ' 封装', seq ? 'lime' : 'slate']
     ];
     $('#dconfPrev').innerHTML =
+      '<div class="dprev-hero">' +
+        '<div class="dprev-frame"><div class="dprev-box" style="--ar:' + f.w + '/' + f.h + '"><span>' + f.w + '×' + f.h + '</span></div></div>' +
+        '<div class="dprev-chips">' + chips.map(function (c) { return '<span class="dchip ' + c[1] + '">' + esc(c[0]) + '</span>'; }).join('') + '</div>' +
+      '</div>' +
       '<div class="fname-box" id="dcName" title="点击复制文件名"><small>输出文件名（点击复制）</small><div class="fname">' + esc(name) + '</div><span class="fpath">…/' + esc(DC.show || 'show') + '/03_renders/' + esc(DC.task || 'comp') + '/v' + dPad(DC.ver) + '/</span></div>' +
-      '<table class="param-table dset">' + rows.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td></tr>'; }).join('') + '</table>' +
+      '<div class="viz-label">帧范围与句柄</div>' + timelineHTML() +
+      '<div class="viz-label">同样参数下，各编码的体积对比</div>' + sizeCmpHTML() +
       '<div class="dwarns">' + dWarnings().map(function (w) { return '<div class="dwarn ' + w[0] + '"><i>' + (w[0] === 'ok' ? '✓' : '!') + '</i><span>' + esc(w[1]) + '</span></div>'; }).join('') + '</div>' +
       '<div class="dsize"><b>≈ ' + esc(est.text) + '</b><span>' + esc(est.sub) + '（粗略估算）</span></div>' +
       '<div class="dbtns"><button class="btn" id="dcCopy">⧉ 复制 Write 设置</button><button class="btn primary" id="dcQueue">⇧ 添加到渲染队列</button></div>' +
@@ -548,14 +676,28 @@
     });
     $('#dchkReset').onclick = function () { S.dchk = {}; save(); renderChecks(); toast('检查清单已重置'); };
   }
+  function renderPipeline() {
+    $('#delivPipe').innerHTML = (VIZ.flow || []).map(function (s, i) {
+      return '<div class="pf-step ' + s.tone + '"><div class="pf-viz"><span class="pf-no">0' + (i + 1) + '</span></div>' +
+        '<b>' + esc(s.step) + '</b><i>' + esc(s.out) + '</i><em>' + esc(s.desc) + '</em></div>' +
+        (i < VIZ.flow.length - 1 ? '<span class="pf-arrow">→</span>' : '');
+    }).join('');
+  }
   function renderDeliveryPresets() {
+    var vz = ['review', 'film', 'alpha', 'matte'];
     $('#deliveryGrid').innerHTML = DELIVERY_PRESETS.map(function (p, i) {
-      return '<article class="delivery-card"><div class="delivery-icon ' + p.tone + '">' + p.icon + '</div><div class="delivery-kind">交付方案 0' + (i + 1) + '</div><h3>' + esc(p.title) + '</h3><p>' + esc(p.purpose) + '</p><div class="delivery-output">' + esc(p.output) + '</div><div class="delivery-settings">' + p.settings.map(function (s) { return '<div><b>' + esc(s[0]) + '</b><span>' + esc(s[1]) + '</span></div>'; }).join('') + '</div><div class="delivery-tip"><b>提示 · </b>' + esc(p.tip) + '</div><button class="delivery-use" data-duse="' + i + '">采用此方案，配置 Write →</button></article>';
+      return '<article class="delivery-card"><div class="preset-viz ' + vz[i] + '">' +
+        (vz[i] === 'review' ? '<div class="pv-screen"><span>▶</span></div>'
+          : vz[i] === 'film' ? '<div class="pv-film"><i></i><i></i><i></i><i></i><i></i><i></i></div>'
+            : vz[i] === 'alpha' ? '<div class="pv-check"><div class="pv-ball"></div></div>'
+              : '<div class="pv-matte"></div>') +
+        '</div><div class="delivery-icon ' + p.tone + '">' + p.icon + '</div><div class="delivery-kind">交付方案 0' + (i + 1) + '</div><h3>' + esc(p.title) + '</h3><p>' + esc(p.purpose) + '</p><div class="delivery-output">' + esc(p.output) + '</div><div class="delivery-settings">' + p.settings.map(function (s) { return '<div><b>' + esc(s[0]) + '</b><span>' + esc(s[1]) + '</span></div>'; }).join('') + '</div><div class="delivery-tip"><b>提示 · </b>' + esc(p.tip) + '</div><button class="delivery-use" data-duse="' + i + '">采用此方案，配置 Write →</button></article>';
     }).join('');
     $$('#deliveryGrid [data-duse]').forEach(function (b) { b.onclick = function () { applyPreset(+b.dataset.duse, true); }; });
   }
   function renderDelivery() {
     renderSide();
+    renderPipeline();
     renderDeliveryPresets();
     renderDconfForm();
     renderDconfPrev();
