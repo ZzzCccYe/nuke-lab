@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260908">
+  <link rel="stylesheet" href="assets/css/styles.css?v=202609112357">
 </head>
 <body>
   <div class="shell">
@@ -19,9 +19,9 @@
         <button data-view="dashboard" class="active"><span class="ico">⌂</span><span>学习概览</span></button>
         <button data-view="courses"><span class="ico">▣</span><span>课程库</span><span class="count" id="cntLessons">0</span></button>
         <button data-view="nodes"><span class="ico">◈</span><span>节点图鉴</span><span class="count" id="cntNodes">0</span></button>
+        <button data-view="keys"><span class="ico">⌨</span><span>快捷键</span></button>
         <button data-view="menus"><span class="ico">☰</span><span>菜单导览</span></button>
-        <a class="ext-link" href="https://learn.foundry.com/nuke/17.1/content/comp_environment/nuke/nuke_intro.html" target="_blank" rel="noopener" title="Foundry 官方 Nuke 合成教程（新窗口打开）"><span class="ico">✎</span><span>官方教程</span><span class="ext-mark">↗</span></a>
-        <a class="ext-link" href="https://learn.foundry.com/nuke/17.1/content/misc/hotkeys_studio.html" target="_blank" rel="noopener" title="Foundry 官方 Nuke 快捷键速查表（新窗口打开）"><span class="ico">⊞</span><span>快捷键表</span><span class="ext-mark">↗</span></a>
+        <a class="ext-link" href="https://learn.foundry.com/nuke/17.1/content/misc/hotkeys_studio.html" target="_blank" rel="noopener" title="Foundry 官方 Nuke 快捷键速查表（新窗口打开）"><span class="ico">⊞</span><span>官方键位表</span><span class="ext-mark">↗</span></a>
         <button data-view="video"><span class="ico">▤</span><span>交付格式规范</span></button>
         <button data-view="delivery"><span class="ico">⇧</span><span>渲染与交付</span></button>
       </nav>
@@ -87,6 +87,25 @@
         <div class="node-grid" id="nodeGrid"></div>
       </section>
 
+      <!-- 快捷键（可视化键盘） -->
+      <section class="view hide" id="view-keys">
+        <div class="page-head"><h1>快捷键键盘</h1><p>把鼠标移到任意键上即可查看它在 Nuke 里的作用；点击可锁定。配合下方修饰键，可查看组合键的另一种功能。</p></div>
+        <div class="kbd-toolbar">
+          <div class="kbd-mods">
+            <span class="kbd-mods-label">按住修饰键：</span>
+            <button class="chip mod" data-mod="ctrl">Ctrl</button>
+            <button class="chip mod" data-mod="shift">Shift</button>
+            <button class="chip mod" data-mod="alt">Alt</button>
+            <button class="chip mod clear" data-mod="clear">清除</button>
+          </div>
+          <div class="kbd-legend" id="keyLegend"></div>
+        </div>
+        <div class="kbd-layout">
+          <div class="kbd-scroll"><div class="kbd-board" id="keyBoard"></div></div>
+          <aside class="card key-detail" id="keyDetail"></aside>
+        </div>
+      </section>
+
       <!-- 菜单导览 -->
       <section class="view hide" id="view-menus">
         <div class="page-head"><h1>Nuke 菜单导览</h1><p>从顶部菜单开始认识 Nuke。展开任一项可查看常用功能、快捷入口与使用场景。</p></div>
@@ -130,9 +149,9 @@
     <button data-view="dashboard" class="active"><span class="ico">⌂</span><span>概览</span></button>
     <button data-view="courses"><span class="ico">▣</span><span>课程</span></button>
     <button data-view="nodes"><span class="ico">◈</span><span>节点</span></button>
+    <button data-view="keys"><span class="ico">⌨</span><span>快捷键</span></button>
     <button data-view="menus"><span class="ico">☰</span><span>菜单</span></button>
-    <a href="https://learn.foundry.com/nuke/17.1/content/comp_environment/nuke/nuke_intro.html" target="_blank" rel="noopener"><span class="ico">✎</span><span>教程<sup>↗</sup></span></a>
-    <a href="https://learn.foundry.com/nuke/17.1/content/misc/hotkeys_studio.html" target="_blank" rel="noopener"><span class="ico">⊞</span><span>快捷键<sup>↗</sup></span></a>
+    <a href="https://learn.foundry.com/nuke/17.1/content/misc/hotkeys_studio.html" target="_blank" rel="noopener"><span class="ico">⊞</span><span>键位表<sup>↗</sup></span></a>
     <button data-view="video"><span class="ico">▤</span><span>规范</span></button>
     <button data-view="delivery"><span class="ico">⇧</span><span>交付</span></button>
   </nav>
@@ -179,8 +198,9 @@
   <div class="node-detail" id="nodeDetail"></div>
   <div id="toast"></div>
 
-  <script src="assets/js/data.js?v=20260908"></script>
-  <script src="assets/js/nodes.js?v=20260908"></script>
-  <script src="assets/js/app.js?v=20260908"></script>
+  <script src="assets/js/data.js?v=202609112357"></script>
+  <script src="assets/js/keys.js?v=202609112357"></script>
+  <script src="assets/js/nodes.js?v=202609112357"></script>
+  <script src="assets/js/app.js?v=202609112357"></script>
 </body>
 </html>
