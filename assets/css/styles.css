@@ -374,6 +374,151 @@ video{width:100%;height:100%;max-height:100%;object-fit:contain;background:#000;
 @media(max-width:1180px){.dconf-grid{grid-template-columns:1fr}.dconf-form{border-right:0;border-bottom:1px solid var(--line)}}
 @media(max-width:640px){.frow,.frow4{grid-template-columns:1fr 1fr}.q-item{grid-template-columns:1fr;gap:8px}.q-act{justify-content:flex-end}}
 
+/* ---------- 交付规范可视化 ---------- */
+.viz-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.viz-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+.viz-card.wide{grid-column:1/-1}
+.viz-card h3{margin:0 0 4px;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.viz-sub{margin:0 0 14px;font-size:11.5px;color:var(--muted);line-height:1.7}
+.viz-label{font:10px "DM Mono",ui-monospace,monospace;color:#98a2b3;margin:16px 0 8px;letter-spacing:.4px}
+/* 画幅 */
+.aspect-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.aspect-item{flex:0 0 auto;width:118px;text-align:center}
+.aspect-stage{height:84px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.aspect-box{border:2px solid;border-radius:5px;display:grid;place-items:center;font:9px "DM Mono",ui-monospace,monospace;overflow:hidden}
+.aspect-box span{opacity:0;transition:.2s;white-space:nowrap}
+.aspect-item:hover .aspect-box span{opacity:1}
+.aspect-box.violet{border-color:#b9b0ff;background:#f2f0ff;color:#5a4ed0}
+.aspect-box.teal{border-color:#a8e8da;background:#e9fbf6;color:#179e8c}
+.aspect-box.orange{border-color:#f7c3a4;background:#fff3ec;color:#d9702f}
+.aspect-box.pink{border-color:#f7b3cf;background:#fff0f6;color:#d24d86}
+.aspect-box.lime{border-color:#c9e6a8;background:#f2fae9;color:#5c9433}
+.aspect-item b{display:block;font-size:12px}
+.aspect-item i{display:block;font:10px "DM Mono",ui-monospace,monospace;color:var(--violet);font-style:normal;margin-top:2px}
+.aspect-item em{display:block;font-size:10.5px;color:var(--muted);font-style:normal;margin-top:3px;line-height:1.5}
+/* 位深渐变 */
+.depth-row{margin-bottom:14px}
+.depth-row:last-child{margin-bottom:0}
+.depth-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.depth-head b{font:12.5px "DM Mono",ui-monospace,monospace}
+.depth-head span{font:10px "DM Mono",ui-monospace,monospace;color:#98a2b3}
+.ramp{display:flex;height:20px;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.ramp i{display:block;height:100%}
+.depth-row em{display:block;font-size:11px;color:var(--muted);font-style:normal;margin-top:5px;line-height:1.6}
+/* 色度子采样 */
+.sub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sub-item b{font:12px "DM Mono",ui-monospace,monospace;display:block;margin-bottom:6px}
+.sub-cells{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px}
+.sub-cells i{display:block;aspect-ratio:1;border-radius:2px}
+.sub-cells i.c{background:#6658e8}
+.sub-cells i.y{background:#e3e7ee}
+.sub-item em{display:block;font-size:10.5px;color:var(--muted);font-style:normal;margin-top:6px;line-height:1.55}
+.sub-legend{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted)}
+.sub-legend span{display:flex;align-items:center;gap:5px}
+.sub-legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+/* 编码对比 */
+.metric-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.metric-chips .chip{padding:5px 11px;font-size:11.5px}
+.cmp-row{display:grid;grid-template-columns:132px 1fr 32px;gap:10px;align-items:center;padding:5px 0}
+.cmp-name{font-size:12px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.badge-a,.badge-s{font:9px "DM Mono",ui-monospace,monospace;font-style:normal;border-radius:4px;padding:1px 4px}
+.badge-a{background:#ffe8f0;color:#dd5e92}
+.badge-s{background:#eaf7e4;color:#5c9433}
+.cmp-bar{height:8px;border-radius:5px;background:#f0f1f5;overflow:hidden}
+.cmp-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#8d82ff,#6658e8);transition:width .35s}
+.cmp-val{font:10px "DM Mono",ui-monospace,monospace;color:#98a2b3;text-align:right}
+.cmp-row em{grid-column:1/-1;font-size:10.5px;color:var(--muted);font-style:normal;margin-top:-2px}
+/* 色彩管线 */
+.pipe-chain{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.pipe-node{border-radius:9px;padding:9px 13px;color:#fff;min-width:0}
+.pipe-node b{display:block;font:11.5px "DM Mono",ui-monospace,monospace}
+.pipe-node span{display:block;font-size:10px;opacity:.85;margin-top:2px}
+.pipe-node.read{background:#48576e}.pipe-node.grade{background:#38aa8e}.pipe-node.merge{background:#e77e5e}
+.pipe-node.view{background:#c98a2e}.pipe-node.write{background:#715ee0}
+.pipe-arrow{color:#b6bdc9;font-size:13px}
+.pipe-desc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.pipe-desc div{background:#fbfbfd;border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.pipe-desc b{display:block;font:10.5px "DM Mono",ui-monospace,monospace;color:var(--violet-dark)}
+.pipe-desc span{font-size:11px;color:#5c6675;line-height:1.6}
+/* 命名 */
+.name-tpl{display:flex;align-items:stretch;gap:2px;flex-wrap:wrap;cursor:pointer;background:#fbfbfd;border:1px dashed #dfe3ea;border-radius:10px;padding:12px}
+.name-part{border-radius:7px;padding:7px 11px;text-align:center;color:#fff;transition:.16s}
+.name-part:hover{transform:translateY(-2px)}
+.name-part b{display:block;font:12px "DM Mono",ui-monospace,monospace}
+.name-part i{display:block;font-size:10px;font-style:normal;opacity:.9;margin-top:2px}
+.name-part.violet{background:#6658e8}.name-part.teal{background:#38aa8e}.name-part.orange{background:#e77e5e}
+.name-part.pink{background:#f169a1}.name-part.lime{background:#7bab3c}.name-part.slate{background:#7c879b}
+.name-sep{display:grid;place-items:center;color:#b6bdc9;font:13px "DM Mono",ui-monospace,monospace;padding:0 2px}
+.name-tips{margin-top:10px;font-size:11.5px;color:#5c6675;line-height:1.9}
+/* 翻车点 */
+.pit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:4px}
+.pit-item b{font-size:12.5px}
+.pit-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.pit-tile{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+.pit-tile.bad{background:#fffaf9;border-color:#f6dedb}
+.pit-tile.good{background:#f8fdfb;border-color:#d5efe4}
+.pit-tag{font:9.5px "DM Mono",ui-monospace,monospace;display:block;margin-bottom:7px}
+.pit-tile.bad .pit-tag{color:#d0605a}
+.pit-tile.good .pit-tag{color:#2f8d72}
+.pit-demo{height:56px;border-radius:7px;background-size:cover}
+.pit-demo.edge{background-color:#fff;background-image:linear-gradient(45deg,#e9edf3 25%,transparent 25%,transparent 75%,#e9edf3 75%),linear-gradient(45deg,#e9edf3 25%,transparent 25%,transparent 75%,#e9edf3 75%);background-size:12px 12px;background-position:0 0,6px 6px;position:relative}
+.pit-demo.edge:after{content:"";position:absolute;inset:0}
+.pit-demo.edge.bad:after{background:radial-gradient(circle at 50% 50%,#7ab0ff 0 30%,#0d0d0d 31% 40%,transparent 41%)}
+.pit-demo.edge.good:after{background:radial-gradient(circle at 50% 50%,#7ab0ff 0 38%,transparent 39%)}
+.pit-demo.band.bad{background-image:linear-gradient(90deg,#1b2550 0 25%,#2b3768 25% 50%,#3f4d85 50% 75%,#5766a3 75%)}
+.pit-demo.band.good{background-image:linear-gradient(90deg,#1b2550,#8f9dd6)}
+.pit-demo.range.bad{background-image:linear-gradient(90deg,#4a4a4a,#ffffff)}
+.pit-demo.range.good{background-image:linear-gradient(90deg,#000000,#ffffff)}
+.pit-demo.lut.bad{background-image:linear-gradient(90deg,#2b5fa8,#e0a94a)}
+.pit-demo.lut.good{background-image:linear-gradient(90deg,#3a72c2,#cfd6e6)}
+.pit-tile em{display:block;font-size:10.5px;color:#6b7688;font-style:normal;margin-top:7px;line-height:1.55}
+
+/* ---------- 交付流水线 / 配置器可视化 ---------- */
+.pipe-flow{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding:4px 2px 10px}
+.pf-step{flex:1 0 150px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px;position:relative}
+.pf-viz{height:34px;border-radius:8px;margin-bottom:9px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;background:#f4f5f8}
+.pf-no{font:16px "DM Mono",ui-monospace,monospace;color:#c3cad6;font-weight:700}
+.pf-step.slate .pf-viz{background:#eef0f4}.pf-step.violet .pf-viz{background:#edeaff}
+.pf-step.teal .pf-viz{background:#def8f2}.pf-step.orange .pf-viz{background:#ffebe1}
+.pf-step.pink .pf-viz{background:#ffe8f0}.pf-step.lime .pf-viz{background:#eaf7e4}
+.pf-step b{display:block;font-size:13px}
+.pf-step i{display:block;font:10.5px "DM Mono",ui-monospace,monospace;color:var(--violet);font-style:normal;margin:3px 0 5px}
+.pf-step em{display:block;font-size:11px;color:var(--muted);font-style:normal;line-height:1.6}
+.pf-arrow{display:grid;place-items:center;color:#c3cad6;font-size:15px;flex:0 0 auto}
+/* 方案卡缩略图 */
+.preset-viz{height:70px;border-radius:10px;margin-bottom:12px;display:grid;place-items:center;overflow:hidden;background:#f7f8fa;border:1px solid var(--line)}
+.pv-screen{width:74px;height:44px;border-radius:5px;background:#1e2636;display:grid;place-items:center}
+.pv-screen span{color:#fff;font-size:13px}
+.pv-film{display:flex;gap:3px;width:88%}
+.pv-film i{flex:1;height:46px;border-radius:3px;background:linear-gradient(180deg,#3b4560,#8f9dd6)}
+.pv-film i:nth-child(odd){background:linear-gradient(180deg,#2a3450,#6f7db4)}
+.pv-check{width:84px;height:48px;background-image:linear-gradient(45deg,#e4e8ef 25%,transparent 25%,transparent 75%,#e4e8ef 75%),linear-gradient(45deg,#e4e8ef 25%,transparent 25%,transparent 75%,#e4e8ef 75%);background-size:14px 14px;background-position:0 0,7px 7px;border-radius:4px;position:relative}
+.pv-ball{position:absolute;inset:6px 18px;border-radius:50%;background:rgba(122,168,255,.85)}
+.pv-matte{width:84px;height:48px;border-radius:4px;background:linear-gradient(90deg,#0d1117,#f2f4f8)}
+/* 配置器预览 */
+.dprev-hero{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;background:#fbfbfd;border:1px solid var(--line);border-radius:12px;padding:14px}
+.dprev-frame{height:84px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:8px}
+.dprev-box{height:74px;aspect-ratio:var(--ar);max-width:100%;border:2px solid var(--violet);border-radius:4px;background:#f2f0ff;display:grid;place-items:center;font:9px "DM Mono",ui-monospace,monospace;color:var(--violet-dark)}
+.dprev-chips{display:flex;gap:7px;flex-wrap:wrap}
+.dchip{border-radius:14px;padding:5px 11px;font:11px "DM Mono",ui-monospace,monospace;background:#f1f2f5;color:#5c6675}
+.dchip.violet{background:#edeaff;color:#5a4ed0}.dchip.teal{background:#def8f2;color:#179e8c}
+.dchip.orange{background:#ffebe1;color:#d9702f}.dchip.pink{background:#ffe8f0;color:#d24d86}
+.dchip.lime{background:#eaf7e4;color:#5c9433}.dchip.slate{background:#eef0f4;color:#778298}
+.dtime{display:flex;height:34px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.dtime-seg{display:grid;place-items:center;font:10px "DM Mono",ui-monospace,monospace;overflow:hidden;white-space:nowrap}
+.dtime-seg.handle{background:#fff3ec;color:#c96a2c;flex:0 0 auto;min-width:48px}
+.dtime-seg.main{background:#edeaff;color:#5a4ed0}
+.dtime-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6}
+.size-cmp{display:flex;flex-direction:column;gap:6px}
+.sc-row{display:grid;grid-template-columns:110px 1fr 68px;gap:10px;align-items:center;font-size:11.5px;color:#6b7688}
+.sc-row.on{color:var(--violet-dark);font-weight:700}
+.sc-row i{height:9px;border-radius:5px;background:#dfe3ea;display:block}
+.sc-row.on i{background:linear-gradient(90deg,#8d82ff,#6658e8)}
+.sc-row b{font:11px "DM Mono",ui-monospace,monospace;text-align:right;color:#778298}
+.sc-row.on b{color:var(--violet-dark)}
+@media(max-width:1180px){.viz-grid{grid-template-columns:1fr}.pit-grid{grid-template-columns:1fr}}
+@media(max-width:640px){.sub-grid{grid-template-columns:1fr}.cmp-row{grid-template-columns:96px 1fr 28px}.dprev-hero{grid-template-columns:1fr}.pipe-flow{flex-direction:column}.pf-arrow{transform:rotate(90deg);height:12px}}
+
 /* ---------- 快捷键键盘 ---------- */
 .kbd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
 .kbd-mods{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
