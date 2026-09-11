@@ -62,7 +62,7 @@
 
   /* ---------------- 侧栏 / 路由 ---------------- */
   var view = 'dashboard', param = null, hashLock = false, lastNonPlayer = { v: 'dashboard', p: null };
-  var VIEWS = { dashboard: '学习概览', courses: '课程库', nodes: '节点图鉴', menus: '菜单导览', video: '交付格式与媒体规范', delivery: '渲染与交付' };
+  var VIEWS = { dashboard: '学习概览', courses: '课程库', nodes: '节点图鉴', keys: '快捷键键盘', menus: '菜单导览', video: '交付格式与媒体规范', delivery: '渲染与交付' };
   function toHash(v, p) { return '#/' + v + (p ? '/' + encodeURIComponent(p) : ''); }
   function go(v, p) {
     view = v; param = p || null;
@@ -81,6 +81,7 @@
     if (v === 'dashboard') renderDash();
     if (v === 'courses') renderCourses();
     if (v === 'nodes') renderNodes();
+    if (v === 'keys') renderKeys();
     if (v === 'menus') renderMenus();
     if (v === 'video') renderVideoGuide();
     if (v === 'delivery') renderDelivery();
@@ -636,6 +637,126 @@
     $('#setAutoDone').classList.toggle('on', S.settings.autoDone);
     $('#setSpeed').value = String(S.settings.speed);
     $('#shortcutGrid').innerHTML = SHORTCUTS.map(function (s) { return '<div><span>' + s[0] + '</span><span class="kbd">' + s[1] + '</span></div>'; }).join('');
+  }
+
+  /* ---------------- 快捷键键盘 ---------------- */
+  var KB = window.NUKE_KEYS || { areas: {}, rows: [], keys: {} };
+  var kbMods = { ctrl: false, alt: false, shift: false };
+  var kbSel = null, kbPin = false;
+  var AREA_COLOR = { node: '#6658e8', prop: '#715ee0', view: '#38aa8e', d3: '#4b8fd6', curve: '#f169a1', roto: '#c98a2e', time: '#e77e5e', glob: '#7c879b' };
+  function keyLabel(k) { var d = KB.keys[k]; return (d && d.label) || k; }
+  function comboPrefix() { return (kbMods.ctrl ? 'Ctrl+' : '') + (kbMods.alt ? 'Alt+' : '') + (kbMods.shift ? 'Shift+' : ''); }
+  function activeMods() { return !!(kbMods.ctrl || kbMods.alt || kbMods.shift); }
+  function parseCombo(str) {
+    var parts = String(str).split('+'), key = parts.pop(), mods = { ctrl: false, alt: false, shift: false };
+    parts.forEach(function (m) { if (m === 'Ctrl') mods.ctrl = true; if (m === 'Alt') mods.alt = true; if (m === 'Shift') mods.shift = true; });
+    return { key: key, mods: mods };
+  }
+  function renderKeys() {
+    renderSide();
+    $('#keyLegend').innerHTML = Object.keys(KB.areas).map(function (k) {
+      return '<span class="kbd-legend-item"><i style="background:' + (AREA_COLOR[k] || '#7c879b') + '"></i>' + esc(KB.areas[k]) + '</span>';
+    }).join('');
+    $('#keyBoard').innerHTML = KB.rows.map(function (row) {
+      return '<div class="kbd-row">' + row.keys.map(function (kd) {
+        var k = kd[0], w = kd[1] || 1;
+        if (kd[2]) return '<span class="kbd-spacer" style="flex:' + w + '"></span>';
+        var d = KB.keys[k];
+        var has = !!(d && ((d.fn && d.fn.length) || (d.combo && d.combo.length)));
+        return '<button class="key' + (has ? ' has' : '') + '" data-k="' + esc(k) + '" style="flex:' + w + '">' +
+          '<span class="key-cap">' + esc(keyLabel(k)) + '</span></button>';
+      }).join('') + '</div>';
+    }).join('');
+    $$('#keyBoard .key').forEach(function (b) {
+      b.onmouseenter = function () { if (!kbPin) showKey(b.dataset.k); };
+      b.onfocus = function () { if (!kbPin) showKey(b.dataset.k); };
+      b.onclick = function () {
+        if (kbPin && kbSel === b.dataset.k) { kbPin = false; showKey(b.dataset.k); }
+        else { kbPin = true; showKey(b.dataset.k); }
+        syncBoard();
+      };
+    });
+    $$('.kbd-mods .chip').forEach(function (b) {
+      b.onclick = function () {
+        if (b.dataset.mod === 'clear') { kbMods = { ctrl: false, alt: false, shift: false }; }
+        else kbMods[b.dataset.mod] = !kbMods[b.dataset.mod];
+        syncBoard(); if (kbSel) showKey(kbSel);
+      };
+    });
+    syncBoard();
+    showKey(kbSel || 'Tab');
+  }
+  function syncBoard() {
+    $$('.kbd-mods .chip').forEach(function (b) { if (b.dataset.mod !== 'clear') b.classList.toggle('on', !!kbMods[b.dataset.mod]); });
+    $$('#keyBoard .key').forEach(function (b) {
+      var k = b.dataset.k;
+      b.classList.toggle('on', k === kbSel);
+      b.classList.toggle('mod-on', (k === 'Ctrl' && kbMods.ctrl) || (k === 'Shift' && kbMods.shift) || (k === 'Alt' && kbMods.alt) || (k === 'Space' && false));
+    });
+  }
+  function showKey(k) {
+    kbSel = k;
+    var d = KB.keys[k] || {};
+    var fn = d.fn || [], combo = (d.combo || []).filter(function (c) { return c[1]; });
+    var prefix = comboPrefix(), cur = null;
+    if (activeMods()) {
+      for (var i = 0; i < combo.length; i++) {
+        if (combo[i][0].toLowerCase() === (prefix + keyLabel(k)).toLowerCase()) { cur = combo[i]; break; }
+      }
+      if (!cur) { for (var j = 0; j < combo.length; j++) { if (combo[j][0].toLowerCase().indexOf(prefix.toLowerCase()) === 0) { cur = combo[j]; break; } } }
+    }
+    var html = '<div class="kd-head"><div class="kd-cap">' + esc(keyLabel(k)) + '</div><div class="kd-meta">' +
+      '<b>' + esc(keyLabel(k)) + ' 键</b>' +
+      (kbPin ? '<span class="kd-pin">已锁定 · 再次点击键可解锁</span>' : '<span>鼠标移开即切换（点击可锁定）</span>') +
+      '</div></div>';
+    if (cur) {
+      html += '<div class="kd-cur"><span class="kd-cur-tag">当前组合</span><div class="kd-cur-key">' + esc(cur[0]) + '</div>' +
+        '<p>' + esc(cur[1]) + '</p></div>';
+    } else if (activeMods()) {
+      html += '<div class="kd-cur none"><span class="kd-cur-tag">当前组合</span><div class="kd-cur-key">' + esc(prefix + keyLabel(k)) + '</div>' +
+        '<p>该组合在 Nuke 默认键位中没有指定功能。</p></div>';
+    }
+    if (fn.length) {
+      html += '<div class="kd-sec"><h4>功能</h4>' + fn.map(function (f) {
+        return '<div class="kd-fn"><span class="kd-area" style="background:' + (AREA_COLOR[f[0]] || '#7c879b') + '">' + esc(KB.areas[f[0]] || f[0]) + '</span><span>' + esc(f[1]) + '</span></div>';
+      }).join('') + '</div>';
+    } else if (!cur) {
+      html += '<div class="kd-sec"><h4>功能</h4><p class="kd-empty">Nuke 默认键位未给这个键分配功能。</p></div>';
+    }
+    if (combo.length) {
+      html += '<div class="kd-sec"><h4>与其他键组合</h4>' + combo.map(function (c) {
+        var pc = parseCombo(c[0]);
+        return '<button class="kd-combo" data-combo="' + esc(c[0]) + '"><span class="kd-combo-key">' + esc(c[0]) + '</span>' +
+          '<span class="kd-combo-fn">' + esc(c[1]) + '</span></button>';
+      }).join('') + '</div>';
+    }
+    if ((d.link || []).length) {
+      html += '<div class="kd-sec"><h4>相关按键</h4><div class="kd-links">' + d.link.filter(function (x) { return KB.keys[x]; }).map(function (x) {
+        return '<button class="kd-link" data-link="' + esc(x) + '">' + esc(keyLabel(x)) + '</button>';
+      }).join('') + '</div></div>';
+    }
+    if (d.tip) html += '<div class="tip-box"><b>实战提示 · </b>' + esc(d.tip) + '</div>';
+    $('#keyDetail').innerHTML = html;
+    $$('#keyDetail .kd-combo').forEach(function (b) {
+      b.onclick = function () {
+        var pc = parseCombo(b.dataset.combo);
+        kbMods = pc.mods; kbPin = true;
+        var target = KB.keys[pc.key] ? pc.key : kbSel;
+        syncBoard(); showKey(target);
+      };
+    });
+    $$('#keyDetail .kd-link').forEach(function (b) {
+      b.onclick = function () {
+        var t = b.dataset.link;
+        if (t === 'Ctrl' || t === 'Shift' || t === 'Alt') { kbMods[t.toLowerCase()] = true; t = kbSel; }
+        kbPin = true; syncBoard(); showKey(t);
+      };
+    });
+    $$('#keyBoard .key').forEach(function (b) { b.classList.toggle('on', b.dataset.k === kbSel); });
+    $$('#keyBoard .key').forEach(function (b) {
+      b.classList.toggle('rel', (d.link || []).indexOf(b.dataset.k) >= 0);
+    });
+    syncBoard();
   }
 
   /* ---------------- 播放器 ---------------- */
