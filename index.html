@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=202609112357">
+  <link rel="stylesheet" href="assets/css/styles.css?v=202609120010">
 </head>
 <body>
   <div class="shell">
@@ -116,6 +116,8 @@
       <section class="view hide" id="view-video">
         <div class="page-head"><h1>交付格式与媒体规范</h1><p>导入、合成和输出时最常用的画面、色彩、编码与交付参数速查。</p></div>
         <div class="video-note"><b>先记住：</b>项目格式、帧率和色彩管理应在开始合成前统一；输出文件的分辨率、位深、编码和 Alpha 则应按交付需求决定。</div>
+        <div class="viz-grid" id="videoViz"></div>
+        <div class="section-heading"><h2>参数速查表</h2><span>点开分组查看每一项的定义与建议</span></div>
         <div class="param-guide" id="videoGuide"></div>
       </section>
 
@@ -123,6 +125,9 @@
       <section class="view hide" id="view-delivery">
         <div class="page-head"><h1>渲染与交付</h1><p>按交付目的选择输出：客户审片、最终成片、带透明元素，或交接给下一环节。</p></div>
         <div class="delivery-banner"><div><span>DELIVERY DESK</span><h2>先确认交付目的，再设置 Write。</h2><p>同一镜头通常至少输出一份审片文件与一份高质量母版；所有文件名、帧范围和色彩空间都应可追溯。</p></div><div class="banner-btns"><button data-delivery-scroll="config">打开交付配置器 →</button><button data-delivery-scroll="check">交付前检查 →</button></div></div>
+        <div class="section-heading"><h2>交付流水线</h2><span>每个环节该输出什么，一眼看清</span></div>
+        <div class="pipe-flow" id="delivPipe"></div>
+        <div class="section-heading"><h2>交付方案</h2><span>按用途选择，点击卡片自动配置下方 Write</span></div>
         <div class="delivery-grid" id="deliveryGrid"></div>
         <section class="dconf" id="deliveryConfig">
           <div class="section-heading"><h2>Write 交付配置器</h2><span>选方案 → 调参数 → 生成文件名、Write 设置与体积预估</span></div>
@@ -198,9 +203,10 @@
   <div class="node-detail" id="nodeDetail"></div>
   <div id="toast"></div>
 
-  <script src="assets/js/data.js?v=202609112357"></script>
-  <script src="assets/js/keys.js?v=202609112357"></script>
-  <script src="assets/js/nodes.js?v=202609112357"></script>
-  <script src="assets/js/app.js?v=202609112357"></script>
+  <script src="assets/js/data.js?v=202609120010"></script>
+  <script src="assets/js/keys.js?v=202609120010"></script>
+  <script src="assets/js/viz.js?v=202609120010"></script>
+  <script src="assets/js/nodes.js?v=202609120010"></script>
+  <script src="assets/js/app.js?v=202609120010"></script>
 </body>
 </html>
